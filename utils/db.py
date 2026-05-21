@@ -17,6 +17,8 @@ async def get_url(token: str) -> str | None:
 
 async def add_url(url: str):
     token = secrets.token_urlsafe(10)
+    if not url.startswith('https://'):
+        url = 'https://' + url
     async with aiosqlite.connect('database.db') as db:
         async with db.cursor() as cursor:
             await cursor.execute('''INSERT INTO urls (token, url) VALUES (?, ?)''', (token, url))
