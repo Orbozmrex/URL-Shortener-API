@@ -1,9 +1,11 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import RedirectResponse
-from utils.db import init_db, add_url, get_url
+from utils.db import init_db, add_url, get_url, add_visit
+from routers.manage_url import router as management_router
 import asyncio
 
 app = FastAPI()
+app.include_router(management_router)
 
 @app.get("/{token}", response_class=RedirectResponse, tags=["redirect"])
 async def redirect(token: str) -> RedirectResponse:
@@ -14,6 +16,7 @@ async def redirect(token: str) -> RedirectResponse:
 
     if not url:
         raise HTTPException(status_code=404, detail="Url not found")
+    await add_visit(token)
     return RedirectResponse(url=url)
 
 @app.post("/shorten", tags=["shorten"])
