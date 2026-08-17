@@ -12,6 +12,10 @@ class DatabaseSettings:
 
     url = f"postgresql+asyncpg://{_user}:{_pass}@{_host}:{_port}/{_name}"
 
+class JWTSettings:
+    algorithm = os.getenv("ALGORITHM")
+    secret = os.getenv("SECRET")
 
-class Settings(DatabaseSettings):
+
+class Settings(DatabaseSettings, JWTSettings):
     pass
