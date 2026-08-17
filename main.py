@@ -1,11 +1,12 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import RedirectResponse
-from utils.db import init_db, add_url, get_url, add_visit
+from utils.database import add_url, get_url, init_db, add_visit
 from routers.manage_url import router as management_router
 import asyncio
+import uvicorn
 
 app = FastAPI()
-app.include_router(management_router)
+# app.include_router(management_router)
 
 @app.get("/{token}", response_class=RedirectResponse, tags=["redirect"])
 async def redirect(token: str) -> RedirectResponse:
@@ -20,8 +21,9 @@ async def redirect(token: str) -> RedirectResponse:
     return RedirectResponse(url=url)
 
 @app.post("/shorten", tags=["shorten"])
-async def shorten(url: str) -> str:
-    return await add_url(url) #returns token
+async def shorten(url: str) -> dict:
+    token = await add_url(url)
+    return {"url": url, "token": token}
 
 async def main():
     await init_db()
