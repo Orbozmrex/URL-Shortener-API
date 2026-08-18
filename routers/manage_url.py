@@ -7,7 +7,7 @@ from schemas.user import UserSchema
 router = APIRouter(prefix="/manage", tags=["manage url"])
 
 @router.get("/info/{token}")
-async def get_stats(token: str, current_user: Annotated[UserSchema, Depends(get_current_user)]) -> dict:
+async def get_info(token: str, current_user: Annotated[UserSchema, Depends(get_current_user)]) -> dict:
     url = await get_url(token)
     if not url:
         raise HTTPException(status_code=404, detail="URL not found")
