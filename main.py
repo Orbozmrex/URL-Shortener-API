@@ -7,9 +7,10 @@ from utils.security import verify_password, create_token
 from routers.manage_url import router as management_router
 import asyncio
 from typing import Annotated
+from pydantic import AnyHttpUrl
 
 app = FastAPI()
-# app.include_router(management_router)
+app.include_router(management_router)
 
 @app.get("/{token}", response_class=RedirectResponse, tags=["redirect"])
 async def redirect(token: str) -> RedirectResponse:
@@ -21,27 +22,27 @@ async def redirect(token: str) -> RedirectResponse:
     if not url:
         raise HTTPException(status_code=404, detail="Url not found")
     await add_visit(token)
-    return RedirectResponse(url=url)
+    return RedirectResponse(url=url.url)
 
 @app.post("/shorten", tags=["shorten"])
-async def shorten(url: str, current_user: Annotated[UserSchema, Depends(get_current_user)]) -> dict:
+async def shorten(url: AnyHttpUrl, current_user: Annotated[UserSchema, Depends(get_current_user)]) -> dict:
     token = await add_url(current_user.id, url)
     return {"url": url, "token": token}
 
-@app.post("/register")
-async def user_register(register_data: UserRegister):
+@app.post("/register", tags=["user"])
+async def user_register(register_data: UserRegister) -> dict:
     await add_user(register_data)
     token = await create_token({"email": register_data.email})
     return {"token": token, "token_type": "Bearer"}
 
-@app.post("/login")
-async def login(login_data: UserLogin):
+@app.post("/login", tags=["user"])
+async def login(login_data: UserLogin) -> dict:
     user = await get_user(login_data.email)
     if not user or not await verify_password(user, login_data.password):
         raise HTTPException(status_code=401, detail="Incorrect login or password")
     return {"token": await create_token({"email": login_data.email}), "token_type": "Bearer"}
 
-@app.get("/users/me")
+@app.get("/users/me", tags=["user"])
 async def read_me(current_user: Annotated[UserSchema, Depends(get_current_user)]):
     return UserResponse.model_validate(current_user)
 
