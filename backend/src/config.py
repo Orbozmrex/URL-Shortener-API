@@ -18,4 +18,6 @@ class JWTSettings:
 
 
 class Settings(DatabaseSettings, JWTSettings):
-    pass
+    custom_max_length: int = 15
+    short_code_length: int = 4
+    short_code_alphabet: str = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ-_"

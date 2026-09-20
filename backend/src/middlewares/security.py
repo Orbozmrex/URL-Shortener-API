@@ -1,6 +1,6 @@
 from pwdlib import PasswordHash
 from datetime import datetime, timedelta
-from config import JWTSettings
+from ..config import JWTSettings
 import jwt
 
 phash = PasswordHash.recommended()
