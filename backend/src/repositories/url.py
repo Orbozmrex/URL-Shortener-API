@@ -1,7 +1,6 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func
 from ..database.models import Url, Visit
-from ..utils import generate_short_code
 from ..schemas.url import Url as Url_schema
 
 class UrlRepository:
