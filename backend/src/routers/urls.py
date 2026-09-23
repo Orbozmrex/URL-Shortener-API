@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, Query, HTTPException
+from fastapi import APIRouter, Depends, Query, HTTPException, Request
 from fastapi.responses import RedirectResponse
 from ..middlewares.jwt_handlers import get_current_user
 from typing import Annotated
@@ -8,12 +8,14 @@ from ..config import URLSettings
 from ..services.urls import UrlService
 from ..exceptions import ForbiddenResourceError, UrlNotFoundError, InvalidCodeError, UnauthorizedError, UrlAlreadyExistsError
 from ..dependencies import get_url_service
+from ..ratelimiting import limiter
 
 router = APIRouter(tags=["urls"])
 
 
 @router.get("/{short_code}", response_class=RedirectResponse)
-async def redirect(short_code: str, service: UrlService = Depends(get_url_service)) -> RedirectResponse:
+@limiter.limit("3/minute")
+async def redirect(request: Request, short_code: str, service: UrlService = Depends(get_url_service)) -> RedirectResponse:
     try:
         url = await service.redirect(short_code)
         return RedirectResponse(url)
@@ -25,7 +27,9 @@ async def redirect(short_code: str, service: UrlService = Depends(get_url_servic
         raise HTTPException(status_code=404, detail=str(error))
 
 @router.post("/urls")
-async def shorten(url: AnyHttpUrl, 
+@limiter.limit("5/minute")
+async def shorten(request: Request, 
+                  url: AnyHttpUrl, 
                   current_user: Annotated[UserSchema | None, Depends(get_current_user)], 
                   custom_code: Annotated[str | None, Query(max_length=URLSettings.custom_max_length)] = None, 
                   service: UrlService = Depends(get_url_service)) -> dict:
@@ -41,7 +45,8 @@ async def shorten(url: AnyHttpUrl,
 
 
 @router.get("/urls/{short_code}/stats")
-async def get_stats(short_code: str, current_user: Annotated[UserSchema, Depends(get_current_user)], service: UrlService = Depends(get_url_service)) -> dict:
+@limiter.limit("10/minute")
+async def get_stats(request: Request, short_code: str, current_user: Annotated[UserSchema, Depends(get_current_user)], service: UrlService = Depends(get_url_service)) -> dict:
     try:
         stats = await service.get_stats_by_code(short_code, current_user)
         return stats
