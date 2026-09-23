@@ -7,7 +7,7 @@ from .routers.urls import router as urls_router
 
 from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
-from .ratelimiting import limiter
+from .core.ratelimiting import limiter
 
 
 app = FastAPI()

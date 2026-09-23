@@ -1,5 +1,5 @@
-from ..utils import generate_short_code
-from ..exceptions import ForbiddenResourceError, UrlNotFoundError, InvalidCodeError, UnauthorizedError, UrlAlreadyExistsError, UrlNotAvailableError, NoPermissionError
+from ..core.utils import generate_short_code
+from ..core.exceptions import ForbiddenResourceError, UrlNotFoundError, InvalidCodeError, UnauthorizedError, UrlAlreadyExistsError, UrlNotAvailableError, NoPermissionError
 
 class UrlService:
     def __init__(self, repo):
