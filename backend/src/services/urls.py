@@ -10,8 +10,8 @@ class UrlService:
         if current_user:
             current_user_id = current_user.id
 
-        if not current_user.is_active:
-            raise NoPermissionError("User is banned")
+            if not current_user.is_active:
+                raise NoPermissionError("User is banned")
 
         if custom_code and not current_user:
             raise UnauthorizedError("Unauthorized")
