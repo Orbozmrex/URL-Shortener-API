@@ -4,7 +4,7 @@ from ..middlewares.jwt_handlers import get_current_user
 from typing import Annotated
 from pydantic import AnyHttpUrl
 from ..schemas.user import UserSchema
-from ..config import Settings
+from ..config import URLSettings
 from ..services.urls import UrlService
 from ..exceptions import ForbiddenResourceError, UrlNotFoundError, InvalidCodeError, UnauthorizedError, UrlAlreadyExistsError
 from ..dependencies import get_url_service
@@ -25,8 +25,9 @@ async def redirect(short_code: str, service: UrlService = Depends(get_url_servic
         raise HTTPException(status_code=404, detail=str(error))
 
 @router.post("/urls")
-async def shorten(url: AnyHttpUrl, current_user: Annotated[UserSchema | None, Depends(get_current_user)], 
-                  custom_code: Annotated[str | None, Query(max_length=Settings.custom_max_length)] = None, 
+async def shorten(url: AnyHttpUrl, 
+                  current_user: Annotated[UserSchema | None, Depends(get_current_user)], 
+                  custom_code: Annotated[str | None, Query(max_length=URLSettings.custom_max_length)] = None, 
                   service: UrlService = Depends(get_url_service)) -> dict:
     try:
         result = await service.shorten(url, current_user, custom_code)
