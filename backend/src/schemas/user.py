@@ -6,6 +6,7 @@ class UserSchema(BaseModel):
     id: int
     email: EmailStr
     password: str
+    is_active: bool
 
 class UserRegister(BaseModel):
     email: EmailStr
