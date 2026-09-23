@@ -18,3 +18,9 @@ class UserAlreadyExistsError(Exception):
 
 class IncorrectLoginDataError(Exception):
     pass
+
+class UrlNotAvailableError(Exception):
+    pass
+
+class NoPermissionError(Exception):
+    pass

@@ -1,5 +1,5 @@
 from ..utils import generate_short_code
-from ..exceptions import ForbiddenResourceError, UrlNotFoundError, InvalidCodeError, UnauthorizedError, UrlAlreadyExistsError
+from ..exceptions import ForbiddenResourceError, UrlNotFoundError, InvalidCodeError, UnauthorizedError, UrlAlreadyExistsError, UrlNotAvailableError, NoPermissionError
 
 class UrlService:
     def __init__(self, repo):
@@ -9,6 +9,9 @@ class UrlService:
         current_user_id = None
         if current_user:
             current_user_id = current_user.id
+
+        if not current_user.is_active:
+            raise NoPermissionError("User is banned")
 
         if custom_code and not current_user:
             raise UnauthorizedError("Unauthorized")
@@ -34,6 +37,9 @@ class UrlService:
 
         if not url:
             raise UrlNotFoundError("URL not found")
+
+        if not url.is_active:
+            raise UrlNotAvailableError("URL is not available anymore")
 
         await self.repo.add_visit(short_code)
         return url.url
