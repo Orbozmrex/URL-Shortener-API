@@ -1,6 +1,6 @@
 from ..middlewares.security import verify_password, create_token, hash_password
 from ..repositories.user import UserRepository
-from ..exceptions import UserAlreadyExistsError, IncorrectLoginDataError
+from ..core.exceptions import UserAlreadyExistsError, IncorrectLoginDataError
 
 class UserService:
     def __init__(self, repo: UserRepository):

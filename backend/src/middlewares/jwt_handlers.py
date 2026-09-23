@@ -1,10 +1,10 @@
 import jwt
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials 
 from fastapi import Depends, HTTPException
-from ..config import JWTSettings
+from ..core.config import JWTSettings
 from typing import Annotated
 from ..services.user import UserService
-from ..dependencies import get_user_service
+from ..core.dependencies import get_user_service
 
 security_scheme = HTTPBearer(auto_error=False)
 

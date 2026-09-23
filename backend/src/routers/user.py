@@ -3,9 +3,9 @@ from ..middlewares.jwt_handlers import get_current_user
 from fastapi import APIRouter, Depends, HTTPException, Request
 from typing import Annotated
 from ..services.user import UserService
-from ..exceptions import UserAlreadyExistsError, IncorrectLoginDataError
-from ..dependencies import get_user_service
-from ..ratelimiting import limiter
+from ..core.exceptions import UserAlreadyExistsError, IncorrectLoginDataError
+from ..core.dependencies import get_user_service
+from ..core.ratelimiting import limiter
 
 router = APIRouter(tags=["user"], prefix="/users")
 

@@ -4,11 +4,11 @@ from ..middlewares.jwt_handlers import get_current_user
 from typing import Annotated
 from pydantic import AnyHttpUrl
 from ..schemas.user import UserSchema
-from ..config import URLSettings
+from ..core.config import URLSettings
 from ..services.urls import UrlService
-from ..exceptions import ForbiddenResourceError, UrlNotFoundError, InvalidCodeError, UnauthorizedError, UrlAlreadyExistsError
-from ..dependencies import get_url_service
-from ..ratelimiting import limiter
+from ..core.exceptions import ForbiddenResourceError, UrlNotFoundError, InvalidCodeError, UnauthorizedError, UrlAlreadyExistsError
+from ..core.dependencies import get_url_service
+from ..core.ratelimiting import limiter
 
 router = APIRouter(tags=["urls"])
 
