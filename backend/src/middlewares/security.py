@@ -1,5 +1,5 @@
 from pwdlib import PasswordHash
-from datetime import datetime, timedelta
+from datetime import datetime
 from ..core.config import JWTSettings
 import jwt
 
