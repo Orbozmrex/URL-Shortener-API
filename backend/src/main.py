@@ -1,6 +1,4 @@
 from fastapi import FastAPI
-import uvicorn
-import asyncio
 
 from .routers.user import router as user_router
 from .routers.url import router as urls_router
