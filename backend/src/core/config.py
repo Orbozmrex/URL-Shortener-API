@@ -1,5 +1,6 @@
 from dotenv import load_dotenv
 import os
+from datetime import timedelta
 
 load_dotenv()
 
@@ -15,6 +16,7 @@ class DatabaseSettings:
 class JWTSettings:
     algorithm = os.getenv("ALGORITHM")
     secret = os.getenv("SECRET")
+    session_ttl = timedelta(days=30)
 
 
 class URLSettings:
