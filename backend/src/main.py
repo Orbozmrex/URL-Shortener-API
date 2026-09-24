@@ -3,7 +3,7 @@ import uvicorn
 import asyncio
 
 from .routers.user import router as user_router
-from .routers.urls import router as urls_router
+from .routers.url import router as urls_router
 
 from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded

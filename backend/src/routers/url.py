@@ -5,7 +5,7 @@ from typing import Annotated
 from pydantic import AnyHttpUrl
 from ..schemas.user import UserSchema
 from ..core.config import URLSettings
-from ..services.urls import UrlService
+from ..services.url import UrlService
 from ..core.exceptions import ForbiddenResourceError, UrlNotFoundError, InvalidCodeError, UnauthorizedError, UrlAlreadyExistsError
 from ..core.dependencies import get_url_service
 from ..core.ratelimiting import limiter
