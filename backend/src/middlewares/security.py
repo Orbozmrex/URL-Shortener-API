@@ -13,5 +13,5 @@ async def hash_password(plain_password):
 
 async def create_token(data: dict):
     to_encode = data.copy()
-    to_encode.update({"exp": datetime.now() + timedelta(days=30)})
+    to_encode.update({"exp": datetime.now() + JWTSettings.session_ttl})
     return jwt.encode(to_encode, JWTSettings.secret, algorithm=JWTSettings.algorithm)
