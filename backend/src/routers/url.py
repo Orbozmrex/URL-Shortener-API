@@ -13,7 +13,7 @@ from ..core.ratelimiting import limiter
 router = APIRouter(tags=["urls"])
 
 
-@router.get("/{short_code}", response_class=RedirectResponse)
+@router.get("/{short_code}", response_class=RedirectResponse, include_in_schema=False)
 @limiter.limit("3/minute")
 async def redirect(request: Request, short_code: str, service: UrlService = Depends(get_url_service)) -> RedirectResponse:
     try:
