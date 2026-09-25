@@ -26,9 +26,19 @@ class UrlRepository:
 
     async def get_info_by_code(self, short_code):
         url = await self.get_by_code(short_code)
-        stmt = select(func.count()).select_from(Visit).where(Visit.url_id == url.id)
-        visits = await self.session.scalar(stmt)
+
+        visits_stmt = select(func.count()).select_from(Visit).where(Visit.url_id == url.id)
+        visits = await self.session.scalar(visits_stmt)
+
+        days_stmt = select(
+                func.date(Visit.visited_at).label("day"),
+                func.count(Visit.id)).group_by(func.date(Visit.visited_at)).order_by(func.date(Visit.visited_at).asc()).where(Visit.url_id == url.id)
+        days_result = await self.session.execute(days_stmt)
+
+        days = [{str(row.day): row.count} for row in days_result.all()]
+
         url_model = Url_schema.model_validate(url)
         json = url_model.model_dump()
         json["visits"] = visits
+        json["days"] = days
         return json
