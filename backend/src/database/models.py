@@ -1,4 +1,4 @@
-from sqlalchemy import ForeignKey, func
+from sqlalchemy import ForeignKey, func, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship, DeclarativeBase
 from datetime import datetime
 from typing import List
@@ -21,9 +21,11 @@ class Url(Base):
     __tablename__ = "urls"
 
     id: Mapped[int] = mapped_column(primary_key=True, index=True)
+    title: Mapped[str | None] = mapped_column(String(30), nullable=True)
     url: Mapped[str] = mapped_column(nullable=False)
     token: Mapped[str] = mapped_column(unique=True, index=True, nullable=False)
     created_at: Mapped[datetime] = mapped_column(server_default=func.current_date(), nullable=False)
+    expires_at: Mapped[datetime | None] = mapped_column(nullable=True, index=True)
 
     owner_id: Mapped[int | None] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), nullable=True)
     owner: Mapped["User | None"] = relationship(back_populates="urls")
