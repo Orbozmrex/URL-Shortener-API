@@ -35,10 +35,11 @@ class UrlRepository:
                 func.count(Visit.id)).group_by(func.date(Visit.visited_at)).order_by(func.date(Visit.visited_at).asc()).where(Visit.url_id == url.id)
         days_result = await self.session.execute(days_stmt)
 
-        days = [{str(row.day): row.count} for row in days_result.all()]
+        days = [{"day": str(row.day), "visits": row.count} for row in days_result.all()]
 
         url_model = Url_schema.model_validate(url)
         json = url_model.model_dump()
-        json["visits"] = visits
-        json["days"] = days
+        json["visits"] = {}
+        json["visits"]["total"] = visits
+        json["visits"]["days"] = days
         return json
