@@ -7,8 +7,10 @@ from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from .core.ratelimiting import limiter
 
+from .tasks.scheduler import scheduler_lifespan
 
-app = FastAPI()
+
+app = FastAPI(lifespan=scheduler_lifespan)
 
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
