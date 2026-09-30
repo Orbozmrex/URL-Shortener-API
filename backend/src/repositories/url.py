@@ -12,8 +12,8 @@ class UrlRepository:
         url = await self.session.scalar(stmt)
         return url
     
-    async def create(self, owner_id, url, short_code):
-        new_url = Url(token=short_code, url=str(url), owner_id=owner_id)
+    async def create(self, owner_id, url, short_code, expires_at):
+        new_url = Url(token=short_code, url=str(url), owner_id=owner_id, expires_at=expires_at)
         self.session.add(new_url)
         await self.session.commit()
         return short_code

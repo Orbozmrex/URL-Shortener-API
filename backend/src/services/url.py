@@ -5,7 +5,7 @@ class UrlService:
     def __init__(self, repo):
         self.repo = repo
 
-    async def shorten(self, url, current_user, custom_code = None):
+    async def shorten(self, url, current_user, custom_code = None, expires_at = None):
         current_user_id = None
         if current_user:
             current_user_id = current_user.id
@@ -26,7 +26,7 @@ class UrlService:
                 if await self.repo.get_by_code(custom_code) is None:
                     break
 
-        await self.repo.create(current_user_id, url, custom_code)
+        await self.repo.create(current_user_id, url, custom_code, expires_at)
         return {"url": url, "short_code": custom_code}
 
     async def redirect(self, short_code):

@@ -9,6 +9,7 @@ from ..services.url import UrlService
 from ..core.exceptions import ForbiddenResourceError, UrlNotFoundError, InvalidCodeError, UnauthorizedError, UrlAlreadyExistsError
 from ..core.dependencies import get_url_service
 from ..core.ratelimiting import limiter
+from datetime import datetime
 
 router = APIRouter(tags=["urls"])
 
@@ -31,10 +32,11 @@ async def redirect(request: Request, short_code: str, service: UrlService = Depe
 async def shorten(request: Request, 
                   url: AnyHttpUrl, 
                   current_user: Annotated[UserSchema | None, Depends(get_current_user)], 
-                  custom_code: Annotated[str | None, Query(max_length=URLSettings.custom_max_length)] = None, 
+                  custom_code: Annotated[str | None, Query(max_length=URLSettings.custom_max_length)] = None,
+                  expires_at: datetime | None = None,
                   service: UrlService = Depends(get_url_service)) -> dict:
     try:
-        result = await service.shorten(url, current_user, custom_code)
+        result = await service.shorten(url, current_user, custom_code, expires_at)
         return result
 
     except UrlAlreadyExistsError as error:
