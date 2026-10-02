@@ -47,6 +47,7 @@ async def shorten(request: Request,
         raise HTTPException(status_code=401, detail=str(error))
 
 @router.patch("/urls")
+@limiter.limit("10/minute")
 async def update(request: Request, short_code: str, update_data: UrlUpdate, current_user: Annotated[UserSchema, Depends(get_current_user)], service: UrlService = Depends(get_url_service)):
     try:
         updated_url = await service.update(short_code, update_data, current_user)
