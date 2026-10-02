@@ -1,5 +1,6 @@
 from ..core.utils import generate_short_code
 from ..core.exceptions import ForbiddenResourceError, UrlNotFoundError, InvalidCodeError, UnauthorizedError, UrlAlreadyExistsError, UrlNotAvailableError, NoPermissionError
+from ..schemas.url import UrlUpdate, Url
 
 class UrlService:
     def __init__(self, repo):
@@ -43,6 +44,24 @@ class UrlService:
 
         await self.repo.add_visit(short_code)
         return url.url
+
+    async def update(self, short_code, update_data: UrlUpdate, current_user):
+        url = await self.repo.get_by_code(short_code)
+
+        if not url:
+            raise UrlNotFoundError("URL not found")
+
+        if update_data.token:
+            existing_url = await self.repo.get_by_code(update_data.token)
+            if existing_url is not None:
+                raise UrlAlreadyExistsError("URL already exists")
+
+        if not url.owner_id == current_user.id:
+            raise ForbiddenResourceError("Forbidden resource")
+
+        updated = await self.repo.update(url, update_data)
+        return Url.model_validate(updated)
+
 
     async def get_stats_by_code(self, short_code, current_user):
         url = await self.repo.get_by_code(short_code)

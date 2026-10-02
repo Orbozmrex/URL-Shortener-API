@@ -1,7 +1,7 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func
 from ..database.models import Url, Visit
-from ..schemas.url import Url as Url_schema
+from ..schemas.url import Url as Url_schema, UrlUpdate
 
 class UrlRepository:
     def __init__(self, session: AsyncSession):
@@ -17,6 +17,20 @@ class UrlRepository:
         self.session.add(new_url)
         await self.session.commit()
         return short_code
+
+    async def update(self, url: Url, update_data: UrlUpdate):
+        update_data = update_data.model_dump(exclude_unset=True)
+
+        #dynamically updates model attributes
+        for key, value in update_data.items():
+            #converts url: AnyHttpUrl to string
+            if hasattr(value, 'unicode_string'):  
+                value = str(value)
+
+            setattr(url, key, value)
+        
+        await self.session.commit()
+        return url
 
     async def add_visit(self, short_code):
         stmt = select(Url).where(Url.token == short_code)

@@ -10,6 +10,7 @@ from ..core.exceptions import ForbiddenResourceError, UrlNotFoundError, InvalidC
 from ..core.dependencies import get_url_service
 from ..core.ratelimiting import limiter
 from datetime import datetime
+from ..schemas.url import UrlUpdate
 
 router = APIRouter(tags=["urls"])
 
@@ -45,6 +46,20 @@ async def shorten(request: Request,
     except UnauthorizedError as error:
         raise HTTPException(status_code=401, detail=str(error))
 
+@router.patch("/urls")
+async def update(request: Request, short_code: str, update_data: UrlUpdate, current_user: Annotated[UserSchema, Depends(get_current_user)], service: UrlService = Depends(get_url_service)):
+    try:
+        updated_url = await service.update(short_code, update_data, current_user)
+        return updated_url
+    
+    except UrlNotFoundError as error:
+        raise HTTPException(status_code=404, detail=str(error)) 
+
+    except UrlAlreadyExistsError as error:
+            raise HTTPException(status_code=409, detail=str(error))
+
+    except ForbiddenResourceError as error:
+            raise HTTPException(status_code=403, detail=str(error))
 
 @router.get("/urls/{short_code}/stats")
 @limiter.limit("10/minute")
