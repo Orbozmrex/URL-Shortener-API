@@ -2,6 +2,7 @@ from sqlalchemy import ForeignKey, func, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship, DeclarativeBase
 from datetime import datetime
 from typing import List
+from ..core.config import URLSettings
 
 class Base(DeclarativeBase):
     pass
@@ -21,7 +22,7 @@ class Url(Base):
     __tablename__ = "urls"
 
     id: Mapped[int] = mapped_column(primary_key=True, index=True)
-    title: Mapped[str | None] = mapped_column(String(30), nullable=True)
+    title: Mapped[str | None] = mapped_column(String(URLSettings.title_max_length), nullable=True)
     url: Mapped[str] = mapped_column(nullable=False)
     token: Mapped[str] = mapped_column(unique=True, index=True, nullable=False)
     created_at: Mapped[datetime] = mapped_column(server_default=func.current_date(), nullable=False)

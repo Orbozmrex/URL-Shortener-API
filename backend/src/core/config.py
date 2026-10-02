@@ -23,6 +23,7 @@ class URLSettings:
     custom_max_length: int = 15
     short_code_length: int = 4
     short_code_alphabet: str = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ-_0123456789"
+    title_max_length: int = 30
 
 class Settings(DatabaseSettings, JWTSettings, URLSettings):
     pass
