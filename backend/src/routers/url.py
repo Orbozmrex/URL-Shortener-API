@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, Query, HTTPException, Request
-from fastapi.responses import RedirectResponse
+from fastapi.responses import RedirectResponse, StreamingResponse
 from ..middlewares.jwt_handlers import get_current_user
 from typing import Annotated
 from pydantic import AnyHttpUrl
@@ -69,6 +69,7 @@ async def update(request: Request, short_code: str, update_data: UrlUpdate, curr
             raise HTTPException(status_code=403, detail=str(error))
 
 @router.delete("/urls")
+@limiter.limit("5/minute")
 async def deactivate(request: Request, short_code: str, current_user: Annotated[UserSchema, Depends(get_current_user)], service: UrlService = Depends(get_url_service)):
     try:
         deactivated = await service.deactivate_by_code(short_code, current_user)
@@ -102,3 +103,9 @@ async def get_stats(request: Request, short_code: str, current_user: Annotated[U
 
     except UnauthorizedError as error:
             raise HTTPException(status_code=401, detail=str(error))
+
+@router.get("/urls/{short_code}/qr", response_class=StreamingResponse)
+@limiter.limit("1/minute")
+async def generate_qr(request: Request, short_code: str, service: UrlService = Depends(get_url_service)) -> StreamingResponse:
+    qr_code = await service.qr_code(short_code)
+    return StreamingResponse(qr_code, media_type="image/png")

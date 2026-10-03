@@ -1,6 +1,7 @@
 from ..core.utils import generate_short_code
 from ..core.exceptions import ForbiddenResourceError, UrlNotFoundError, InvalidCodeError, UnauthorizedError, UrlAlreadyExistsError, UrlNotAvailableError, NoPermissionError
 from ..schemas.url import UrlUpdate, Url
+from ..core.utils import generate_qr_code
 
 class UrlService:
     def __init__(self, repo):
@@ -54,6 +55,7 @@ class UrlService:
         if not url:
             raise UrlNotFoundError("URL not found")
 
+
         if not url.owner_id == current_user.id:
             raise ForbiddenResourceError("Forbidden resource")
 
@@ -84,7 +86,6 @@ class UrlService:
         deactivated = await self.repo.deactivate(url)
         return deactivated
 
-
     async def get_stats_by_code(self, short_code, current_user):
         url = await self.repo.get_by_code(short_code)
 
@@ -99,3 +100,13 @@ class UrlService:
         
         stats = await self.repo.get_stats(url)
         return {'stats': stats}
+
+    async def qr_code(self, short_code):
+        existing_url = await self.repo.get_by_code(short_code)
+
+        if not existing_url:
+            raise UrlNotFoundError("URL not found")
+
+        qr_code = await generate_qr_code(short_code)
+        return qr_code
+        
