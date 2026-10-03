@@ -75,5 +75,5 @@ class UrlService:
         if not url.owner_id == current_user.id:
             raise ForbiddenResourceError("Forbidden resource")
         
-        stats = await self.repo.get_info_by_code(short_code)
+        stats = await self.repo.get_stats(url)
         return {'stats': stats}

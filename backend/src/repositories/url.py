@@ -38,9 +38,7 @@ class UrlRepository:
         self.session.add(Visit(url_id=url.id))
         await self.session.commit()
 
-    async def get_info_by_code(self, short_code):
-        url = await self.get_by_code(short_code)
-
+    async def get_stats(self, url: Url):
         visits_stmt = select(func.count()).select_from(Visit).where(Visit.url_id == url.id)
         visits = await self.session.scalar(visits_stmt)
 
