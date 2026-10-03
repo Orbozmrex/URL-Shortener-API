@@ -59,6 +59,9 @@ async def update(request: Request, short_code: str, update_data: UrlUpdate, curr
     except UrlNotFoundError as error:
         raise HTTPException(status_code=404, detail=str(error)) 
 
+    except UnauthorizedError as error:
+        raise HTTPException(status_code=401, detail=str(error))
+
     except UrlAlreadyExistsError as error:
             raise HTTPException(status_code=409, detail=str(error))
 

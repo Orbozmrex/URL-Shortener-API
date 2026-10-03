@@ -48,16 +48,20 @@ class UrlService:
     async def update(self, short_code, update_data: UrlUpdate, current_user):
         url = await self.repo.get_by_code(short_code)
 
+        if current_user is None:
+            raise UnauthorizedError("Unauthorized")
+
         if not url:
             raise UrlNotFoundError("URL not found")
+
+        if not url.owner_id == current_user.id:
+            raise ForbiddenResourceError("Forbidden resource")
 
         if update_data.token:
             existing_url = await self.repo.get_by_code(update_data.token)
             if existing_url is not None:
                 raise UrlAlreadyExistsError("URL already exists")
 
-        if not url.owner_id == current_user.id:
-            raise ForbiddenResourceError("Forbidden resource")
 
         updated = await self.repo.update(url, update_data)
         return Url.model_validate(updated)
