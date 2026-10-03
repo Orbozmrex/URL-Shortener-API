@@ -1,5 +1,5 @@
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, func, update
+from sqlalchemy import select, func
 from ..database.models import Url, Visit
 from ..schemas.url import Url as Url_schema, UrlUpdate
 
