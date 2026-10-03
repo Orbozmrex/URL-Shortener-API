@@ -40,7 +40,7 @@ class UrlService:
             raise UrlNotFoundError("URL not found")
 
         if not url.is_active:
-            raise UrlNotAvailableError("URL is not available anymore")
+            raise UrlNotAvailableError("URL is no longer active")
 
         await self.repo.add_visit(short_code)
         return url.url

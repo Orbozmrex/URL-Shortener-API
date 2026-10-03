@@ -6,7 +6,7 @@ from pydantic import AnyHttpUrl
 from ..schemas.user import UserSchema
 from ..core.config import URLSettings
 from ..services.url import UrlService
-from ..core.exceptions import ForbiddenResourceError, UrlNotFoundError, InvalidCodeError, UnauthorizedError, UrlAlreadyExistsError
+from ..core.exceptions import ForbiddenResourceError, UrlNotFoundError, InvalidCodeError, UnauthorizedError, UrlAlreadyExistsError, UrlNotAvailableError
 from ..core.dependencies import get_url_service
 from ..core.ratelimiting import limiter
 from datetime import datetime
@@ -27,6 +27,9 @@ async def redirect(request: Request, short_code: str, service: UrlService = Depe
 
     except UrlNotFoundError as error:
         raise HTTPException(status_code=404, detail=str(error))
+
+    except UrlNotAvailableError as error:
+         raise HTTPException(status_code=410, detail=str(error))
 
 @router.post("/urls")
 @limiter.limit("5/minute")
