@@ -67,7 +67,7 @@ class UrlService:
         url = await self.repo.get_by_code(short_code)
 
         if current_user is None:
-            raise ForbiddenResourceError("Forbidden resource")
+            raise UnauthorizedError("Unauthorized")
 
         if not url:
             raise UrlNotFoundError("URL not found")

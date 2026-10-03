@@ -78,4 +78,5 @@ async def get_stats(request: Request, short_code: str, current_user: Annotated[U
     except UrlNotFoundError as error:
             raise HTTPException(status_code=404, detail=str(error))
 
-    
+    except UnauthorizedError as error:
+            raise HTTPException(status_code=401, detail=str(error))
