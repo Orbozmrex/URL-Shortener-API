@@ -45,3 +45,5 @@ loguru==0.7.3
 tzdata==2026.4
 tzlocal==5.4.4
 win32_setctime==1.2.0
+pillow==12.3.0
+qrcode==8.2
