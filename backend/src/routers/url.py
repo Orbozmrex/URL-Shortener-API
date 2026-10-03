@@ -65,6 +65,25 @@ async def update(request: Request, short_code: str, update_data: UrlUpdate, curr
     except ForbiddenResourceError as error:
             raise HTTPException(status_code=403, detail=str(error))
 
+@router.delete("/urls")
+async def deactivate(request: Request, short_code: str, current_user: Annotated[UserSchema, Depends(get_current_user)], service: UrlService = Depends(get_url_service)):
+    try:
+        deactivated = await service.deactivate_by_code(short_code, current_user)
+        return deactivated
+    
+    except ForbiddenResourceError as error:
+        raise HTTPException(status_code=403, detail=str(error))
+
+    except UrlNotFoundError as error:
+        raise HTTPException(status_code=404, detail=str(error))
+
+    except UnauthorizedError as error:
+        raise HTTPException(status_code=401, detail=str(error))
+
+    except UrlNotAvailableError as error:
+        raise HTTPException(status_code=410, detail=str(error))
+    
+
 @router.get("/urls/{short_code}/stats")
 @limiter.limit("10/minute")
 async def get_stats(request: Request, short_code: str, current_user: Annotated[UserSchema, Depends(get_current_user)], service: UrlService = Depends(get_url_service)) -> dict:

@@ -62,6 +62,24 @@ class UrlService:
         updated = await self.repo.update(url, update_data)
         return Url.model_validate(updated)
 
+    async def deactivate_by_code(self, short_code, current_user):
+        url = await self.repo.get_by_code(short_code)
+
+        if current_user is None:
+            raise UnauthorizedError("Unauthorized")
+
+        if not url:
+            raise UrlNotFoundError("URL not found")
+
+        if not url.owner_id == current_user.id:
+            raise ForbiddenResourceError("Forbidden resource")
+
+        if not url.is_active:
+            raise UrlNotAvailableError("URL is already deactivated")
+
+        deactivated = await self.repo.deactivate(url)
+        return deactivated
+
 
     async def get_stats_by_code(self, short_code, current_user):
         url = await self.repo.get_by_code(short_code)

@@ -1,5 +1,5 @@
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, func
+from sqlalchemy import select, func, update
 from ..database.models import Url, Visit
 from ..schemas.url import Url as Url_schema, UrlUpdate
 
@@ -32,6 +32,11 @@ class UrlRepository:
         await self.session.commit()
         return url
 
+    async def deactivate(self, url: Url):
+        url.is_active = False
+        await self.session.commit()
+        return url
+        
     async def add_visit(self, short_code):
         stmt = select(Url).where(Url.token == short_code)
         url = await self.session.scalar(stmt)
