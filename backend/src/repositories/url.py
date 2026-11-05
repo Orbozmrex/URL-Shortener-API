@@ -2,6 +2,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func
 from ..database.models import Url, Visit
 from ..schemas.url import Url as Url_schema, UrlUpdate
+from redis.asyncio import Redis
+import orjson
 
 class UrlRepository:
     def __init__(self, session: AsyncSession):
@@ -16,7 +18,8 @@ class UrlRepository:
         new_url = Url(token=short_code, url=str(url), owner_id=owner_id, expires_at=expires_at)
         self.session.add(new_url)
         await self.session.commit()
-        return short_code
+        await self.session.refresh(new_url)
+        return new_url
 
     async def update(self, url: Url, update_data: UrlUpdate):
         update_data = update_data.model_dump(exclude_unset=True)
@@ -37,9 +40,11 @@ class UrlRepository:
         await self.session.commit()
         return url
         
-    async def add_visit(self, short_code):
-        stmt = select(Url).where(Url.token == short_code)
-        url = await self.session.scalar(stmt)
+    async def add_visit(self, short_code, url: Url | None = None):
+        if url is None:
+            stmt = select(Url).where(Url.token == short_code)
+            url = await self.session.scalar(stmt)
+
         self.session.add(Visit(url_id=url.id))
         await self.session.commit()
 
@@ -60,3 +65,19 @@ class UrlRepository:
         json["visits"]["total"] = visits
         json["visits"]["days"] = days
         return json
+
+class UrlCachedRepository:
+    def __init__(self, redis: Redis):
+        self.redis = redis
+
+    async def get(self, name: str):
+        data = await self.redis.get(name)
+        if data is None:
+            return None
+        return orjson.loads(data)
+
+    async def set(self, key: str, value: str | dict, ex: int):
+        await self.redis.set(name=key, value=orjson.dumps(value), ex=ex)
+
+    async def delete(self, key: str):
+        await self.redis.delete(key)
