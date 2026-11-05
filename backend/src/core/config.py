@@ -26,5 +26,15 @@ class URLSettings:
     title_max_length: int = 30
     domain: str = os.getenv("DOMAIN")
 
-class Settings(DatabaseSettings, JWTSettings, URLSettings):
+class CacheSettings:
+    _host = os.getenv("REDIS_HOST")
+    _port = os.getenv("REDIS_PORT")
+    _redis_db = 0
+
+    connection_url = f"redis://{_host}:{_port}/{_redis_db}"
+
+    url_ttl = 600
+    url_prefix = "url"
+
+class Settings(DatabaseSettings, JWTSettings, URLSettings, CacheSettings):
     pass
