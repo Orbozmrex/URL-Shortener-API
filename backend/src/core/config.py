@@ -36,5 +36,8 @@ class CacheSettings:
     url_ttl = 600
     url_prefix = "url"
 
+    user_ttl = 600
+    user_prefix = "user"
+
 class Settings(DatabaseSettings, JWTSettings, URLSettings, CacheSettings):
     pass
