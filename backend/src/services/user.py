@@ -21,7 +21,6 @@ class UserService:
         user = await self.repo.get_by_email(email)
 
         user_model = UserResponse.model_validate(user)
-        print(user_model)
         await self.cache.set(f"{self.cache_prefix}:{email}", user_model.model_dump(), self.cache_ttl)
         return user_model
 
