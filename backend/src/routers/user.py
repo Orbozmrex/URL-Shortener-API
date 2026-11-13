@@ -34,4 +34,4 @@ async def login(request: Request, login_data: UserLogin, service: UserService = 
 async def read_me(request: Request, current_user: Annotated[UserSchema, Depends(get_current_user)]):
     if current_user is None:
         raise HTTPException(status_code=401, detail="Unauthorized")
-    return UserResponse.model_validate(current_user)
+    return current_user

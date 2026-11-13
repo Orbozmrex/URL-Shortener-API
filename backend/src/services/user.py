@@ -1,25 +1,42 @@
 from ..middlewares.security import verify_password, create_token, hash_password
 from ..repositories.user import UserRepository
 from ..core.exceptions import UserAlreadyExistsError, IncorrectLoginDataError
+from ..repositories.user import UserCachedRepository
+from ..core.config import CacheSettings
+from ..schemas.user import UserResponse
+from sqlalchemy.exc import IntegrityError
 
 class UserService:
-    def __init__(self, repo: UserRepository):
+    def __init__(self, repo: UserRepository, cache: UserCachedRepository):
         self.repo = repo
+        self.cache = cache
+        self.cache_prefix = CacheSettings.user_prefix
+        self.cache_ttl = CacheSettings.user_ttl
 
     async def get_by_email(self, email):
+        cached_user = await self.cache.get(f"{self.cache_prefix}:{email}")
+        if cached_user is not None:
+            return UserResponse.model_validate(cached_user)
+
         user = await self.repo.get_by_email(email)
-        return user
+
+        user_model = UserResponse.model_validate(user)
+        print(user_model)
+        await self.cache.set(f"{self.cache_prefix}:{email}", user_model.model_dump(), self.cache_ttl)
+        return user_model
 
     async def register(self, register_data):
-        existing_user = await self.repo.get_by_email(register_data.email)
-        if existing_user is not None:
-            raise UserAlreadyExistsError("User already exists")
-
         hashed_password = await hash_password(register_data.password)
-        await self.repo.register(register_data.email, hashed_password)
+        try:
+            new_user = await self.repo.register(register_data.email, hashed_password)
+            token = await create_token({"email": register_data.email})
 
-        token = await create_token({"email": register_data.email})
-        return {"token": token, "token_type": "Bearer"}
+            user_model = UserResponse.model_validate(new_user)
+            await self.cache.set(f"{self.cache_prefix}:{register_data.email}", user_model.model_dump(), self.cache_ttl)
+            return {"token": token, "token_type": "Bearer"}
+        except IntegrityError:
+            await self.repo.session.rollback()
+            raise UserAlreadyExistsError("User already exists")
 
     async def login(self, login_data):
         user = await self.repo.get_by_email(login_data.email)
