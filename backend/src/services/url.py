@@ -138,11 +138,6 @@ class UrlService:
         return {'stats': stats}
 
     async def qr_code(self, short_code):
-        existing_url = await self.repo.get_by_code(short_code)
-
-        if not existing_url:
-            raise UrlNotFoundError("URL not found")
-
         qr_code = await generate_qr_code(short_code)
         return qr_code
         
