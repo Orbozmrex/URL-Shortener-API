@@ -1,4 +1,4 @@
-from ..repositories.user import UserRepository
+from ..repositories.user import UserRepository, UserCachedRepository
 from ..repositories.url import UrlRepository, UrlCachedRepository
 from ..services.url import UrlService
 from ..services.user import UserService
@@ -12,6 +12,7 @@ def get_url_service(session: AsyncSession = Depends(get_session), redis = Depend
     cache = UrlCachedRepository(redis)
     return UrlService(repository, cache)
 
-def get_user_service(session: AsyncSession = Depends(get_session)) -> UserService:
+def get_user_service(session: AsyncSession = Depends(get_session), redis = Depends(get_redis)) -> UserService:
     repository = UserRepository(session)
-    return UserService(repository)
+    cache = UserCachedRepository(redis)
+    return UserService(repository, cache)
