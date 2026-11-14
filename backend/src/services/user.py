@@ -14,21 +14,33 @@ class UserService:
         self.cache_ttl = CacheSettings.user_ttl
 
     async def get_by_email(self, email):
-        cached_user = await self.cache.get(f"{self.cache_prefix}:{email}")
-        if cached_user is not None:
-            return UserResponse.model_validate(cached_user)
-
+        user_id = await self.cache.get(f"{self.cache_prefix}:email:{email}")
+    
+        if user_id is not None:
+            cached_user = await self.cache.get(f"{self.cache_prefix}:id:{user_id}")
+            if cached_user is not None:
+                return UserResponse.model_validate(cached_user)
+                
         user = await self.repo.get_by_email(email)
+        
+        user_model = UserResponse.model_validate(user)
+        
+        await self.cache.set(f"{self.cache_prefix}:id:{user_model.id}", user_model.model_dump(), self.cache_ttl)
+        await self.cache.set(f"{self.cache_prefix}:email:{email}", user_model.id, self.cache_ttl)
+        return user_model
+
+    async def get_by_id(self, id: int):
+        user = await self.repo.get_by_id(id)
 
         user_model = UserResponse.model_validate(user)
-        await self.cache.set(f"{self.cache_prefix}:{email}", user_model.model_dump(), self.cache_ttl)
+        await self.cache.set(f"{self.cache_prefix}:id:{id}", user_model.model_dump(), self.cache_ttl)
         return user_model
 
     async def register(self, register_data):
         hashed_password = await hash_password(register_data.password)
         try:
             new_user = await self.repo.register(register_data.email, hashed_password)
-            token = await create_token({"email": register_data.email})
+            token = await create_token({"id": new_user.id,"email": register_data.email})
 
             user_model = UserResponse.model_validate(new_user)
             await self.cache.set(f"{self.cache_prefix}:{register_data.email}", user_model.model_dump(), self.cache_ttl)
@@ -44,5 +56,5 @@ class UserService:
         if not user or not verified_password:
             raise IncorrectLoginDataError("Incorrect login or password")
         
-        token = await create_token({"email": login_data.email})
+        token = await create_token({"id": user.id,"email": login_data.email})
         return {"token": token, "token_type": "Bearer"}

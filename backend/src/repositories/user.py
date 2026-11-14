@@ -14,6 +14,11 @@ class UserRepository:
         user = await self.session.execute(stmt)
         return user.scalar_one_or_none()
 
+    async def get_by_id(self, id: int) -> User | None:
+        stmt = select(User).where(User.id == id).options(selectinload(User.urls))
+        user = await self.session.execute(stmt)
+        return user.scalar_one_or_none()
+
     async def register(self, email, hashed_password) -> User:
         new_user = User(email=email, hashed_password=hashed_password)
         self.session.add(new_user)
