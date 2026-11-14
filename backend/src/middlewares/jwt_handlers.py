@@ -15,6 +15,6 @@ async def get_current_user(credentials: Annotated[HTTPAuthorizationCredentials ,
     try:
         token = credentials.credentials
         payload = jwt.decode(token, JWTSettings.secret, algorithms=JWTSettings.algorithm)
-        return await service.get_by_email(payload.get("email"))
+        return await service.get_by_id(payload.get("id"))
     except:
         raise HTTPException(status_code=401, detail="Invalid token")
