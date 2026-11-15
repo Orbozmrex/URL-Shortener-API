@@ -6,6 +6,9 @@ import jwt
 phash = PasswordHash.recommended()
 
 async def verify_password(user, login_password):
+    if not user:
+        return None
+    
     return phash.verify(login_password, user.hashed_password)
 
 async def hash_password(plain_password):
