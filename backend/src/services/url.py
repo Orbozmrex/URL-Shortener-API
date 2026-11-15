@@ -14,10 +14,10 @@ class UrlService:
         self.cache_ttl = CacheSettings.url_ttl
         self.user_urls_prefix = CacheSettings.user_prefix
 
-    async def invalidate_user_urls_cache(self, email: str | None) -> None:
-        if email is None:
+    async def invalidate_user_urls_cache(self, current_user: str | None) -> None:
+        if current_user is None:
             return
-        await self.cache.delete(f"{self.user_urls_prefix}:{email}")
+        await self.cache.delete(f"{self.user_urls_prefix}:{current_user.email}")
 
     async def shorten(self, url, current_user, custom_code = None, expires_at = None):
         current_user_id = None
@@ -48,7 +48,7 @@ class UrlService:
                     await self.repo.session.rollback()
 
         await self.cache.set(f"{self.cache_prefix}:{final_code}", str(url), self.cache_ttl)
-        await self.invalidate_user_urls_cache(current_user.email)
+        await self.invalidate_user_urls_cache(current_user)
         return {"url": url, "short_code": final_code}
 
     async def redirect(self, short_code):
@@ -91,7 +91,7 @@ class UrlService:
             raise UrlAlreadyExistsError("URL already exists")
         
         await self.cache.delete(f"{self.cache_prefix}:{short_code}")
-        await self.invalidate_user_urls_cache(current_user.email)
+        await self.invalidate_user_urls_cache(current_user)
         return Url.model_validate(updated)
 
     async def deactivate_by_code(self, short_code, current_user):
@@ -114,7 +114,7 @@ class UrlService:
             return deactivated
         finally:
             await self.cache.delete(f"{self.cache_prefix}:{short_code}")
-            await self.invalidate_user_urls_cache(current_user.email)
+            await self.invalidate_user_urls_cache(current_user)
 
     async def get_stats_by_code(self, short_code, current_user):
         url = await self.repo.get_by_code(short_code)
