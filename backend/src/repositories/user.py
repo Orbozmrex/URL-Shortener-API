@@ -23,6 +23,8 @@ class UserRepository:
         new_user = User(email=email, hashed_password=hashed_password)
         self.session.add(new_user)
         await self.session.commit()
+        
+        await self.session.refresh(new_user, attribute_names=["urls"])
         return new_user
 
 class UserCachedRepository:
