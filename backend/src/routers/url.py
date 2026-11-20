@@ -4,7 +4,7 @@ from ..middlewares.jwt_handlers import get_current_user
 from typing import Annotated
 from pydantic import AnyHttpUrl
 from ..schemas.user import UserSchema
-from ..core.config import URLSettings
+from ..core.config import settings
 from ..services.url import UrlService
 from ..core.exceptions import ForbiddenResourceError, UrlNotFoundError, InvalidCodeError, UnauthorizedError, UrlAlreadyExistsError, UrlNotAvailableError
 from ..core.dependencies import get_url_service
@@ -13,10 +13,11 @@ from datetime import datetime
 from ..schemas.url import UrlUpdate
 
 router = APIRouter(tags=["urls"])
+url_ratelimits = settings.ratelimits.urls
 
 
 @router.get("/{short_code}", response_class=RedirectResponse, include_in_schema=False)
-@limiter.limit("3/minute")
+@limiter.limit(url_ratelimits.redirect)
 async def redirect(request: Request, short_code: str, service: UrlService = Depends(get_url_service)) -> RedirectResponse:
     try:
         url = await service.redirect(short_code)
@@ -32,11 +33,11 @@ async def redirect(request: Request, short_code: str, service: UrlService = Depe
          raise HTTPException(status_code=410, detail=str(error))
 
 @router.post("/urls")
-@limiter.limit("5/minute")
+@limiter.limit(url_ratelimits.shorten)
 async def shorten(request: Request, 
                   url: AnyHttpUrl, 
                   current_user: Annotated[UserSchema | None, Depends(get_current_user)], 
-                  custom_code: Annotated[str | None, Query(max_length=URLSettings.custom_max_length)] = None,
+                  custom_code: Annotated[str | None, Query(max_length=settings.url.custom_max_length)] = None,
                   expires_at: datetime | None = None,
                   service: UrlService = Depends(get_url_service)) -> dict:
     try:
@@ -50,7 +51,7 @@ async def shorten(request: Request,
         raise HTTPException(status_code=401, detail=str(error))
 
 @router.patch("/urls")
-@limiter.limit("10/minute")
+@limiter.limit(url_ratelimits.update)
 async def update(request: Request, short_code: str, update_data: UrlUpdate, current_user: Annotated[UserSchema, Depends(get_current_user)], service: UrlService = Depends(get_url_service)):
     try:
         updated_url = await service.update(short_code, update_data, current_user)
@@ -69,7 +70,7 @@ async def update(request: Request, short_code: str, update_data: UrlUpdate, curr
             raise HTTPException(status_code=403, detail=str(error))
 
 @router.delete("/urls")
-@limiter.limit("5/minute")
+@limiter.limit(url_ratelimits.deactivate)
 async def deactivate(request: Request, short_code: str, current_user: Annotated[UserSchema, Depends(get_current_user)], service: UrlService = Depends(get_url_service)):
     try:
         deactivated = await service.deactivate_by_code(short_code, current_user)
@@ -89,7 +90,7 @@ async def deactivate(request: Request, short_code: str, current_user: Annotated[
     
 
 @router.get("/urls/{short_code}/stats")
-@limiter.limit("10/minute")
+@limiter.limit(url_ratelimits.get_stats)
 async def get_stats(request: Request, short_code: str, current_user: Annotated[UserSchema, Depends(get_current_user)], service: UrlService = Depends(get_url_service)) -> dict:
     try:
         stats = await service.get_stats_by_code(short_code, current_user)
@@ -105,7 +106,7 @@ async def get_stats(request: Request, short_code: str, current_user: Annotated[U
             raise HTTPException(status_code=401, detail=str(error))
 
 @router.get("/urls/{short_code}/qr", response_class=StreamingResponse)
-@limiter.limit("1/minute")
+@limiter.limit(url_ratelimits.generate_qr)
 async def generate_qr(request: Request, short_code: str, service: UrlService = Depends(get_url_service)) -> StreamingResponse:
     qr_code = await service.qr_code(short_code)
     return StreamingResponse(qr_code, media_type="image/png")

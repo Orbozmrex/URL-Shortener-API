@@ -2,7 +2,7 @@ from pydantic import BaseModel, ConfigDict
 from datetime import datetime
 from pydantic import AnyHttpUrl
 from typing import Annotated
-from ..core.config import URLSettings
+from ..core.config import settings
 from fastapi import Query
 
 class Url(BaseModel):
@@ -16,5 +16,5 @@ class Url(BaseModel):
 
 class UrlUpdate(BaseModel):
     url: AnyHttpUrl | None = None
-    token: Annotated[str | None, Query(max_length=URLSettings.custom_max_length)] = None
+    token: Annotated[str | None, Query(max_length=settings.url.custom_max_length)] = None
     expires_at: datetime | None = None

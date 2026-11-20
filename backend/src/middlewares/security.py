@@ -1,6 +1,6 @@
 from pwdlib import PasswordHash
 from datetime import datetime
-from ..core.config import JWTSettings
+from ..core.config import settings
 import jwt
 
 phash = PasswordHash.recommended()
@@ -16,5 +16,5 @@ async def hash_password(plain_password):
 
 async def create_token(data: dict):
     to_encode = data.copy()
-    to_encode.update({"exp": datetime.now() + JWTSettings.session_ttl})
-    return jwt.encode(to_encode, JWTSettings.secret, algorithm=JWTSettings.algorithm)
+    to_encode.update({"exp": datetime.now() + settings.jwt.session_ttl})
+    return jwt.encode(to_encode, settings.jwt.secret, algorithm=settings.jwt.algorithm)

@@ -2,7 +2,7 @@ from ..middlewares.security import verify_password, create_token, hash_password
 from ..repositories.user import UserRepository
 from ..core.exceptions import UserAlreadyExistsError, IncorrectLoginDataError
 from ..repositories.user import UserCachedRepository
-from ..core.config import CacheSettings
+from ..core.config import settings
 from ..schemas.user import UserResponse
 from sqlalchemy.exc import IntegrityError
 
@@ -10,8 +10,8 @@ class UserService:
     def __init__(self, repo: UserRepository, cache: UserCachedRepository):
         self.repo = repo
         self.cache = cache
-        self.cache_prefix = CacheSettings.user_prefix
-        self.cache_ttl = CacheSettings.user_ttl
+        self.cache_prefix = settings.cache.user_prefix
+        self.cache_ttl = settings.cache.user_ttl
 
     async def get_by_email(self, email):
         user_id = await self.cache.get(f"{self.cache_prefix}:email:{email}")

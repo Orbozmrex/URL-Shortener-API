@@ -3,16 +3,16 @@ from ..core.exceptions import ForbiddenResourceError, UrlNotFoundError, InvalidC
 from ..schemas.url import UrlUpdate, Url
 from ..core.utils import generate_qr_code
 from ..repositories.url import UrlCachedRepository, UrlRepository
-from ..core.config import CacheSettings
+from ..core.config import settings
 from sqlalchemy.exc import IntegrityError
 
 class UrlService:
     def __init__(self, repo: UrlRepository, cache: UrlCachedRepository):
         self.repo = repo
         self.cache = cache
-        self.cache_prefix = CacheSettings.url_prefix
-        self.cache_ttl = CacheSettings.url_ttl
-        self.user_urls_prefix = CacheSettings.user_prefix
+        self.cache_prefix = settings.cache.url_prefix 
+        self.cache_ttl = settings.cache.url_ttl
+        self.user_urls_prefix = settings.cache.user_prefix
 
     async def invalidate_user_urls_cache(self, current_user: str | None) -> None:
         if current_user is None:

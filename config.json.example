@@ -1,0 +1,42 @@
+{
+  "db": {
+    "host": "localhost",
+    "port": 5432,
+    "name": "shortener"
+  },
+  "jwt": {
+    "algorithm": "HS256",
+    "session_ttl": "P30D"
+  },
+  "url": {
+    "custom_max_length": 15,
+    "short_code_length": 4,
+    "short_code_alphabet": "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ-_0123456789",
+    "title_max_length": 30,
+    "domain": "https://example.com"
+  },
+  "cache": {
+    "host": "localhost",
+    "port": 6379,
+    "redis_db": 0,
+    "url_ttl": 600,
+    "url_prefix": "url",
+    "user_ttl": 600,
+    "user_prefix": "user"
+  },
+  "ratelimits": {
+    "urls": {
+        "redirect": "3/minute",
+        "shorten": "5/minute",
+        "update": "10/minute",
+        "deactivate": "5/minute",
+        "get_stats": "10/minute",
+        "generate_qr": "1/minute"
+    },
+    "users": {
+        "register": "1/15minutes",
+        "login": "1/minute",
+        "readme": "5/minute"
+    }
+  }
+}

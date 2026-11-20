@@ -1,7 +1,7 @@
 import jwt
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials 
 from fastapi import Depends, HTTPException
-from ..core.config import JWTSettings
+from ..core.config import settings
 from typing import Annotated
 from ..services.user import UserService
 from ..core.dependencies import get_user_service
@@ -14,7 +14,7 @@ async def get_current_user(credentials: Annotated[HTTPAuthorizationCredentials ,
     
     try:
         token = credentials.credentials
-        payload = jwt.decode(token, JWTSettings.secret, algorithms=JWTSettings.algorithm)
+        payload = jwt.decode(token, settings.jwt.secret, algorithms=settings.jwt.algorithm)
         return await service.get_by_id(payload.get("id"))
     except:
         raise HTTPException(status_code=401, detail="Invalid token")

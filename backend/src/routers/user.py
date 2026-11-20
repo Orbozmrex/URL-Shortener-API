@@ -6,11 +6,13 @@ from ..services.user import UserService
 from ..core.exceptions import UserAlreadyExistsError, IncorrectLoginDataError
 from ..core.dependencies import get_user_service
 from ..core.ratelimiting import limiter
+from ..core.config import settings
 
 router = APIRouter(tags=["user"], prefix="/users")
+user_ratelimits = settings.ratelimits.users
 
 @router.post("/register")
-@limiter.limit("1/15minutes")
+@limiter.limit(user_ratelimits.registration)
 async def user_register(request: Request, register_data: UserRegister, service: UserService = Depends(get_user_service)) -> dict:
     try:
         token = await service.register(register_data)
@@ -20,7 +22,7 @@ async def user_register(request: Request, register_data: UserRegister, service: 
         raise HTTPException(status_code=409, detail=str(error))
 
 @router.post("/login")
-@limiter.limit("1/minute")
+@limiter.limit(user_ratelimits.login)
 async def login(request: Request, login_data: UserLogin, service: UserService = Depends(get_user_service)) -> dict:
     try:
         token = await service.login(login_data)
@@ -30,7 +32,7 @@ async def login(request: Request, login_data: UserLogin, service: UserService = 
         raise HTTPException(status_code=401, detail=str(error))
 
 @router.get("/me")
-@limiter.limit("5/minute")
+@limiter.limit(user_ratelimits.readme)
 async def read_me(request: Request, current_user: Annotated[UserSchema, Depends(get_current_user)]):
     if current_user is None:
         raise HTTPException(status_code=401, detail="Unauthorized")

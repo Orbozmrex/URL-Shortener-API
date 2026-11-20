@@ -1,43 +1,94 @@
-from dotenv import load_dotenv
-import os
 from datetime import timedelta
+from pydantic_settings import BaseSettings, SettingsConfigDict, JsonConfigSettingsSource
+from pydantic import computed_field, BaseModel, Field
+from pathlib import Path
 
-load_dotenv()
+BACKEND_DIR = Path(__file__).resolve().parents[2]
+ROOT_DIR = Path(__file__).resolve().parents[3]
 
-class DatabaseSettings:
-    _user = os.getenv("DB_USER")
-    _pass = os.getenv("DB_PASS")
-    _host = os.getenv("DB_HOST")
-    _port = os.getenv("DB_PORT")
-    _name = os.getenv("DB_NAME")
+class DatabaseSettings(BaseModel):
+    user: str
+    password: str
+    host: str
+    port: int
+    name: str
 
-    url = f"postgresql+asyncpg://{_user}:{_pass}@{_host}:{_port}/{_name}"
-
-class JWTSettings:
-    algorithm = os.getenv("ALGORITHM")
-    secret = os.getenv("SECRET")
-    session_ttl = timedelta(days=30)
+    @computed_field
+    @property
+    def url(self) -> str:
+        return f"postgresql+asyncpg://{self.user}:{self.password}@{self.host}:{self.port}/{self.name}"
 
 
-class URLSettings:
-    custom_max_length: int = 15
-    short_code_length: int = 4
-    short_code_alphabet: str = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ-_0123456789"
-    title_max_length: int = 30
-    domain: str = os.getenv("DOMAIN")
+class JWTSettings(BaseModel):
+    algorithm: str
+    secret: str
+    session_ttl: timedelta
 
-class CacheSettings:
-    _host = os.getenv("REDIS_HOST")
-    _port = os.getenv("REDIS_PORT")
-    _redis_db = 0
 
-    connection_url = f"redis://{_host}:{_port}/{_redis_db}"
+class URLSettings(BaseModel):
+    custom_max_length: int
+    short_code_length: int
+    short_code_alphabet: str
+    title_max_length: int
+    domain: str
 
-    url_ttl = 600
-    url_prefix = "url"
 
-    user_ttl = 600
-    user_prefix = "user"
+class CacheSettings(BaseModel):
+    host: str
+    port: int
+    redis_db: int
 
-class Settings(DatabaseSettings, JWTSettings, URLSettings, CacheSettings):
-    pass
+    url_ttl: int
+    url_prefix: str
+    user_ttl: int
+    user_prefix: str
+
+    @computed_field
+    @property
+    def connection_url(self) -> str:
+        return f"redis://{self.host}:{self.port}/{self.redis_db}"
+
+class RateLimitUrl(BaseModel):
+    redirect: str
+    shorten: str
+    update: str
+    deactivate: str
+    get_stats: str
+    generate_qr: str
+
+class RateLimitUser(BaseModel):
+    registration: str = Field(alias="register")
+    login: str
+    readme: str
+
+class RateLimitSettings(BaseModel):
+    urls: RateLimitUrl
+    users: RateLimitUser
+
+class Settings(BaseSettings):
+    db: DatabaseSettings
+    jwt: JWTSettings
+    url: URLSettings
+    cache: CacheSettings
+    ratelimits: RateLimitSettings
+
+    model_config = SettingsConfigDict(
+        env_file=BACKEND_DIR / ".env",
+        json_file=ROOT_DIR / "config.json",
+        env_file_encoding="utf-8",
+        env_nested_delimiter="__",
+        json_file_encoding="utf-8",
+        extra="ignore",
+    )
+
+    @classmethod
+    def settings_customise_sources(cls, settings_cls, init_settings, env_settings, dotenv_settings, **kwargs):
+        return (
+            init_settings,
+            env_settings,
+            dotenv_settings,
+            JsonConfigSettingsSource(settings_cls),
+        )
+
+
+settings = Settings()
