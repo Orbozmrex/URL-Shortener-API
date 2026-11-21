@@ -21,7 +21,7 @@ url_ratelimits = settings.ratelimits.urls
 async def redirect(request: Request, short_code: str, service: UrlService = Depends(get_url_service)) -> RedirectResponse:
     try:
         url = await service.redirect(short_code)
-        return RedirectResponse(url)
+        return RedirectResponse(url, status_code=301)
     
     except InvalidCodeError as error:
         raise HTTPException(status_code=404, detail=str(error))
