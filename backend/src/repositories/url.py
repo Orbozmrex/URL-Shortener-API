@@ -40,17 +40,22 @@ class UrlRepository:
         await self.session.commit()
         return url
         
-    async def add_visit(self, short_code, url: Url | None = None):
+    async def add_visit(self, short_code, os, browser, url: Url | None = None):
         if url is None:
             stmt = select(Url).where(Url.token == short_code)
             url = await self.session.scalar(stmt)
 
-        self.session.add(Visit(url_id=url.id))
+        self.session.add(Visit(url_id=url.id, os=os, browser=browser))
         await self.session.commit()
 
     async def get_stats(self, url: Url):
+        url_model = Url_schema.model_validate(url)
+        json = url_model.model_dump()
+        json["visits"] = {}
+
         visits_stmt = select(func.count()).select_from(Visit).where(Visit.url_id == url.id)
         visits = await self.session.scalar(visits_stmt)
+        json["visits"]["total"] = visits
 
         days_stmt = select(
                 func.date(Visit.visited_at).label("day"),
@@ -58,12 +63,21 @@ class UrlRepository:
         days_result = await self.session.execute(days_stmt)
 
         days = [{"day": str(row.day), "visits": row.count} for row in days_result.all()]
-
-        url_model = Url_schema.model_validate(url)
-        json = url_model.model_dump()
-        json["visits"] = {}
-        json["visits"]["total"] = visits
         json["visits"]["days"] = days
+
+        json["visits"]["os"] = {}
+        os_stmt = select(Visit.os, func.count(Visit.os).label("count")).group_by(Visit.os)
+        os_result = await self.session.execute(os_stmt)
+        for os, count in os_result:
+            json["visits"]["os"][os] = count
+
+
+        json["visits"]["browser"] = {}
+        browser_stmt = select(Visit.browser, func.count(Visit.browser).label("count")).group_by(Visit.browser)
+        browser_result = await self.session.execute(browser_stmt)
+        for browser, count in browser_result:
+            json["visits"]["browser"][browser] = count
+        
         return json
 
 class UrlCachedRepository:

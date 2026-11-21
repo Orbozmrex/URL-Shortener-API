@@ -42,3 +42,6 @@ class Visit(Base):
     url: Mapped["Url"] = relationship(back_populates="visits")
 
     visited_at: Mapped[datetime] = mapped_column(server_default=func.current_date(), nullable=False)
+
+    os: Mapped[str] = mapped_column(index=True, nullable=False)
+    browser: Mapped[str] = mapped_column(index=True, nullable=False)

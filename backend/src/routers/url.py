@@ -11,6 +11,7 @@ from ..core.dependencies import get_url_service
 from ..core.ratelimiting import limiter
 from datetime import datetime
 from ..schemas.url import UrlUpdate
+import user_agents
 
 router = APIRouter(tags=["urls"])
 url_ratelimits = settings.ratelimits.urls
@@ -20,7 +21,8 @@ url_ratelimits = settings.ratelimits.urls
 @limiter.limit(url_ratelimits.redirect)
 async def redirect(request: Request, short_code: str, service: UrlService = Depends(get_url_service)) -> RedirectResponse:
     try:
-        url = await service.redirect(short_code)
+        user_agent = user_agents.parse(request.headers.get("user-agent", ""))
+        url = await service.redirect(short_code, user_agent)
         return RedirectResponse(url, status_code=301)
     
     except InvalidCodeError as error:

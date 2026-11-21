@@ -51,13 +51,16 @@ class UrlService:
         await self.invalidate_user_urls_cache(current_user)
         return {"url": url, "short_code": final_code}
 
-    async def redirect(self, short_code):
+    async def redirect(self, short_code, user_agent):
         if not short_code:
             raise InvalidCodeError("Invalid short code")
 
+        os = user_agent.os.family
+        browser = user_agent.browser.family
+
         cached_url = await self.cache.get(f"{self.cache_prefix}:{short_code}")
         if cached_url is not None:
-            await self.repo.add_visit(short_code)
+            await self.repo.add_visit(short_code, os=os, browser=browser)
             return cached_url
 
         url = await self.repo.get_by_code(short_code)
@@ -68,7 +71,7 @@ class UrlService:
         if not url.is_active:
             raise UrlNotAvailableError("URL is no longer active")
 
-        await self.repo.add_visit(short_code, url)
+        await self.repo.add_visit(short_code, url=url, os=os, browser=browser)
 
         await self.cache.set(f"{self.cache_prefix}:{short_code}", url.url, self.cache_ttl)
         return url.url
